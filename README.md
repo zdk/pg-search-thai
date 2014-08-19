@@ -7,9 +7,11 @@ The main purpuse is to:
 
 Use PostgreSQL Full Text Search for Thai language (which spaces were not used to separate words )
 
-This extension requires segmentation system installed LibThai (LibThai does not require source code), libiconv for character encoding conversion (requires by LibThai word break), a pre-installed postgresql which C compiler will use to find `pg_config`. If LibThai is not installed on your system, please check out http://linux.thai.net/projects/libthai for more details
+This extension requires Thai word breaking routine in LibThai, libiconv for character encoding conversion (that requires by LibThai word breaking as it can only do tis-620 character encoding word segmentation) and
+a pre-installed postgresql which C compiler will use to find `pg_config`.
+If LibThai is already not installed on your system, please check out http://linux.thai.net/projects/libthai or Installation section for more details
 
-##Configuration and Installation
+##Installation
 
 - Download the _libthai_ (its dependency: _libdatrie_ ) from the following link: http://linux.thai.net/projects/libthai
 
@@ -19,22 +21,23 @@ This extension requires segmentation system installed LibThai (LibThai does not 
 
 - Install the extension
 
-```Shell
-cd thai_parser; make; make install
-```
+     ```cd thai_parser; make; make install
+     ```
 
 ##Usage
 
 - Start up **psql** and type:
 
-```Sql
-CREATE EXTENSION thai_parser;
-CREATE TEXT SEARCH CONFIGURATION thaicfg (PARSER = thai_parser);
-ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple;
-```
+     ```CREATE EXTENSION thai_parser;
+     CREATE TEXT SEARCH CONFIGURATION thaicfg (PARSER = thai_parser);
+     ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple;
+     ```
 
-##Example
+##Example 1
 
-```Sql
-select * from ts_parse('thai_parser', 'อาหารไทย ต้มยำกุ้งน้ำข้น (Thai sour and spicy shrimp soup) รสเด็ด');
-```
+    ```select * from ts_parse('thai_parser', 'อาหารไทย ต้มยำกุ้งน้ำข้น (Thai       sour and spicy shrimp soup) รสเด็ด');
+    ```
+
+##Example 2
+    ```select to_tsvector('thaicfg', 'อาหารไทย ต้มยำกุ้งน้ำข้น (Thai sour and spicy shrimp soup) รสเด็ด');
+    ```
