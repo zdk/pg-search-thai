@@ -1,0 +1,4 @@
+comment = 'a Thai parser for full text search'
+default_version = '1.0'
+module_pathname = '$libdir/thai_parser'
+relocatable = true
