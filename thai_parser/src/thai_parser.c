@@ -6,34 +6,32 @@
  * Copyright (c) 2014, Warachet Samtalee (zdk)
  *
  * IDENTIFICATION
- *		  contrib/thai_parser/thai_parser.c
+ *		thai_parser/src/thai_parser.c
  *
  *-------------------------------------------------------------------------
  */
-#include <thai/tis.h>
-#include <thai/thbrk.h>
-#include <thai/thwbrk.h>
-#include <wchar.h>
-#include <thai/thwchar.h>
-#include <iconv.h>
 
 #include "postgres.h"
-#include "miscadmin.h"
 #include "fmgr.h"
 
+#include <thai/tis.h>
+#include <thai/thbrk.h>
+#include <thai/thwchar.h>
+#include <wchar.h>
+#include <iconv.h>
 
-PG_MODULE_MAGIC;
 
-typedef struct 
+PG_MODULE_MAGIC; //Ensure that it doesn't load improperly versioned object file.
+
+typedef struct
 {
-    char* buf;          // text to parse
-    int len;            // the lenght of text
-    int *pos;           // the position of breaked words
-    int num;            // the number of breaked words
-    int cur_id;         // the ID of current word
+    char* buf;          // A text to parse
+    int len;            // The length of text
+    int *pos;           // The position of a breaking word
+    int num;            // The number of a breaking word
+    int cur_id;         // An ID of current word
 } parser_ctx_t;
 
-/* copy-paste from wparser.h of tsearch2 */
 typedef struct
 {
     int  lexid;
@@ -46,7 +44,7 @@ typedef struct
  */
 
 /**
-  * convert the input string from one charset to another charset
+  * convert an input string from one charset to another charset
   *
   * @param from the original charset of string
   * @param to the target charset
@@ -56,27 +54,27 @@ typedef struct
   * @param out_len the output string buffer length
   * @return 0 success; -1 failure
   */
-int conv_code(char* from, char* to, char* in, size_t in_len, 
+int conv_code(char* from, char* to, char* in, size_t in_len,
         char* out, size_t out_len);
 
 /**
-  * translate the word break postion of tis620 string 
-  * to corresponding position of utf-8 string
+  * convert the word break postion of tis-620 string
+  * to the corresponding position of utf-8 string
   *
-  * @param msg the tis 620 string
-  * @param pos the position array of tis 620 string.
-  *            it also store the translated utf-8 string word break positions.
-  * @param pos_len the position array length of tis 620 string
+  * @param msg TIS-620 string
+  * @param pos the position array of tis-620 string.
+  *            it also stores the translated utf-8 string word break positions.
+  * @param pos_len the position array length of tis-620 string
   */
 void trans_pos(char* msg, int *pos, int pos_len);
 
 /**
   * break the input utf-8 text into thai words and record the postion.
-  * 
+  *
   * @param text the text need to be parsed
-  * @param pos the position array for store the word postion
-  * @param text_len the length of input text
-  * @return the length of word break position
+  * @param pos the position array in order to store the word postion
+  * @param text_len a length of an input text
+  * @return a length of the word break position
   */
 int th_ubrk(char* text, int* pos, int text_len);
 
@@ -101,11 +99,11 @@ thai_parser_start(PG_FUNCTION_ARGS)
     ctx->buf = (char*)PG_GETARG_POINTER(0);
     ctx->len = PG_GETARG_INT32(1);
 
-    // allocate position array. it use maximum length  
+    // allocate position array. it use maximum length
     cell_num = ctx->len / sizeof(wchar_t) + 1;
     ctx->pos = (int*)palloc0(sizeof(int) * cell_num);
 
-    // word bread for utf-8 text
+    // word break for utf-8 text
     ctx->num = th_ubrk(ctx->buf, ctx->pos, ctx->len);
 
     ctx->cur_id = 0;
@@ -120,23 +118,19 @@ thai_parser_get_token(PG_FUNCTION_ARGS)
     int* len = (int*)PG_GETARG_POINTER(2);
     int type = 'a';
 
-    if (ctx->cur_id > ctx->num)
-    {
+    if (ctx->cur_id > ctx->num) {
         // no word
         *len = 0;
         type = 0;
-    } else if (ctx->cur_id == ctx->num)
-    {
+    } else if (ctx->cur_id == ctx->num) {
         // last word
         *len = ctx->len - ctx->pos[ctx->cur_id - 1];
         *token = ctx->buf + ctx->pos[ctx->cur_id - 1];
-    } else if (ctx->cur_id == 0)
-    {
+    } else if (ctx->cur_id == 0) {
         // first word
         *len = ctx->pos[0];
         *token = ctx->buf;
-    } else 
-    {
+    } else {
         // middle words
         *len = ctx->pos[ctx->cur_id] - ctx->pos[ctx->cur_id - 1];
         *token = ctx->buf + ctx->pos[ctx->cur_id - 1];
@@ -171,7 +165,7 @@ thai_parser_lextype(PG_FUNCTION_ARGS)
     PG_RETURN_POINTER(descr);
 }
 
-int conv_code(char* from, char* to, char* in, size_t in_len, 
+int conv_code(char* from, char* to, char* in, size_t in_len,
         char* out, size_t out_len)
 {
     iconv_t conv;
@@ -191,34 +185,26 @@ int conv_code(char* from, char* to, char* in, size_t in_len,
 void trans_pos(char* msg, int *pos, int pos_len)
 {
     // the length of current tis 620 string
-    int len = 0; 
-    // tempory buffer use to calculate the length of utf-8 position
+    int len = 0;
+    // a tempory buffer that is used for utf-8 position calculation.
     char tmp[128];
-    // last word break postion of tis 620 string 
+    // the last word break postion of tis-620 string
     int last_pos = 0;
 
     int i = 0;
-    while (i <= pos_len)
-    {
-        if (i == 0)
-        {
+    while (i <= pos_len) {
+        if (i == 0) {
             len = pos[0];
-        }
-        else if (i == pos_len)
-        {
+        } else if (i == pos_len) {
             len = strlen(msg);
-        }
-        else 
-        {
+        } else {
             len += pos[i] - last_pos;
         }
         last_pos = pos[i];
 
-        // convert current tis 620 string to utf-8 to get
-        // the corresponding utf-8 length
+        // convert current tis 620 string to utf-8 to get the corresponding utf-8 length
         conv_code("tis620", "utf-8", msg, len, tmp, 127);
         pos[i] = strlen(tmp); //rewrite with utf-8 position
-
         i++;
     }
 }
