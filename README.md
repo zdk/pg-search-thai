@@ -1,7 +1,7 @@
-pg-thai-textsearch-extension
+pg-search-thai-extension
 ============================
 
-_pg-thai-textsearch-extension_ is Thai Full Text Search extension for _PostgreSQL_.
+pg-search-thai-extension is Thai Full Text Search extension for _PostgreSQL_.
 
 The main purpuse is to:
 
@@ -34,10 +34,24 @@ If LibThai is already not installed on your system, please check out http://linu
      ```
 
 ##Example 1
+Check how parser works.
 
-    ```select * from ts_parse('thai_parser', 'อาหารไทย ต้มยำกุ้งน้ำข้น (Thai       sour and spicy shrimp soup) รสเด็ด');
+    ```select * from ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น (Thai sour and spicy shrimp soup) อร่อยเข้มข้น');
     ```
 
 ##Example 2
-    ```select to_tsvector('thaicfg', 'อาหารไทย ต้มยำกุ้งน้ำข้น (Thai sour and spicy shrimp soup) รสเด็ด');
+Try to build document from `thaicfg` configuration that uses the specified parser.
+
+    ```select to_tsvector('thaicfg', 'ต้มยำกุ้งน้ำข้น (Thai sour and spicy shrimp soup) อร่อยเข้มข้น');
     ```
+
+##Example 3
+
+Querying
+
+````gdsire=# select to_tsvector('testthaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('testthaicfg','ส้มตำ');
+ ?column?
+----------
+ t
+(1 row)
+````
