@@ -1,0 +1,7 @@
+2005/05/30
+	- Add unknown THAI word from NECTEC researched.
+
+2005/09/12
+	- Add country, city name words.
+	- Remove some words which include THAI punctuation (mai ya mok).
+	- Add THAI numbers spell words.
