@@ -13,16 +13,20 @@ If LibThai is already not installed on your system, please check out http://linu
 
 ##Installation
 
-- Download the _libthai_ (its dependency: _libdatrie_ ) from the following link: http://linux.thai.net/projects/libthai
+- Download the _libthai_ (and its dependency: _libdatrie_ ) from the following link: http://linux.thai.net/projects/libthai
 
 - Download the _libiconv_ from the following link: https://www.gnu.org/software/libiconv/
 
 - Install _libthai_ and _libiconv_ on your local system.
 
-- Install the extension
+- Install the extension, at project root directory, you can simply run:
 
-     ```cd thai_parser; make; make install
-     ```
+     ````make all
+     ````
+- But, if you would like to just install the thai parser, just go into thai_parser directory, compile and install it, like so:
+
+     ````cd thai_parser; make; make install
+     ````
 
 ##Usage
 
@@ -46,12 +50,29 @@ Try to build document from `thaicfg` configuration that uses the specified parse
     ```
 
 ##Example 3
-
 Querying
 
-````gdsire=# select to_tsvector('testthaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('testthaicfg','ส้มตำ');
- ?column?
-----------
- t
-(1 row)
-````
+    ````gdsire=# select to_tsvector('testthaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('testthaicfg','ส้มตำ');
+     ?column?
+    ----------
+     t
+    (1 row)
+    ````
+##Example 4
+ If you want to use hunspell as a dictionary for the full text search.
+ Make sure you have already install thai hunspell dictionay files in `pg_config --sharedir`/tsearch_data directory.
+
+    ````
+    CREATE TEXT SEARCH DICTIONARY thai_hunspell (
+        TEMPLATE = ispell,
+        DictFile = th_TH,
+        AffFile = th_TH,
+        StopWords = english
+    );
+    ````
+
+In psql console type `\dFd` to see if dictionary is installed.
+Then,
+   ````ALTER TEXT SEARCH CONFIGURATION testthaicfg ADD MAPPING FOR a WITH simple, thai_hunspell;````
+Test
+   ````SELECT ts_lexize('thai_hunspell', 'ทดสอบ');````
