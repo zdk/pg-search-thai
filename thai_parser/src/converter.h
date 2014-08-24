@@ -49,6 +49,25 @@ void trans_pos(char* msg, int *pos, int pos_len);
   */
 int th_ubrk(char* text, int* pos, int text_len);
 
+/**
+  * get a Thai word from an input string
+  * 
+  * @param ctx the context for division. it includes the input information
+  * @param token the word starting point
+  * @param token_len the length of word
+  * @return 'a' got a word; 
+  *         0 if not found and reach the end of buffer
+  */
+int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len);
+
+/**
+  * get a non Thai word from an input string
+  * 
+  * @param ctx the context for division. it includes the input information
+  * @param token the segement starting point
+  * @param token_len the length of word
+  * @return 'b' got a English word; 'c' got a space; 
+  *         0 if not found and reach the end of buffer
+  */
+int get_non_thai_word(parser_ctx_t* ctx, char** token, int *token_len);
 #endif
-
-
