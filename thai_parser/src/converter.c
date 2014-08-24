@@ -3,11 +3,11 @@
  * converter.c
  *		  Thai text search parser
  *
- * Copyright (c) 2014, Warachet Samtalee (zdk)
- *
  * IDENTIFICATION
  *		thai_parser/src/converter.c
  *
+ * Copyright (c) 2014, Di Warachet (zdk)
+ * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  *-------------------------------------------------------------------------
  */
 
@@ -84,7 +84,7 @@ int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
     if (ctx->cur_id == -1) {
         ctx->buf_len = 0;
         ctx->buf     = ctx->text;
-        while ((ctx->buf + ctx->buf_len) != NULL 
+        while ((ctx->buf + ctx->buf_len) != NULL
                 && ((int)*(ctx->buf + ctx->buf_len) & 0x80) != 0) {
             ctx->buf_len++;
         }
@@ -146,7 +146,7 @@ int get_non_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
     } else {
         ret = 'c';
     }
-    
+
     if (len > 0) {
         *token         = ctx->text;
         *token_len     = len;

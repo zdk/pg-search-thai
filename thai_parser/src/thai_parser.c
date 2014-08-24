@@ -2,12 +2,11 @@
  *
  * thai_parser.c
  *		  Thai text search parser
- *
- * Copyright (c) 2014, Warachet Samtalee (zdk)
- *
- * IDENTIFICATION
+ * * IDENTIFICATION
  *		thai_parser/src/thai_parser.c
  *
+ * Copyright (c) 2014, Di Warachet (zdk)
+ * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  *-------------------------------------------------------------------------
  */
 
