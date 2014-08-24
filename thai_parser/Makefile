@@ -1,5 +1,5 @@
 MODULE_big = thai_parser
-OBJS = src/thai_parser.o
+OBJS = src/thai_parser.o src/converter.o
 
 EXTENSION = thai_parser
 DATA = sql/thai_parser--1.0.sql sql/thai_parser--unpackaged--1.0.sql
