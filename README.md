@@ -40,13 +40,13 @@ If LibThai is already not installed on your system, please check out http://linu
 ##Example 1
 Check how parser works.
 
-    ```select * from ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น (Thai sour and spicy shrimp soup) อร่อยเข้มข้น');
+    ```select * from ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
     ```
 
 ##Example 2
 Try to build document from `thaicfg` configuration that uses the specified parser.
 
-    ```select to_tsvector('thaicfg', 'ต้มยำกุ้งน้ำข้น (Thai sour and spicy shrimp soup) อร่อยเข้มข้น');
+    ```select to_tsvector('thaicfg', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
     ```
 
 ##Example 3
@@ -58,6 +58,23 @@ Querying
      t
     (1 row)
     ````
+##Example 4
+Querying with `|` and `&` operator.
+
+    ````
+    gdsire=#  select to_tsvector('testthaicfg', 'ส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('testthaicfg','ข้าวเหนียว&ส้มตำ');
+     ?column?
+    ----------
+     f
+    (1 row)
+
+    gdsire=#  select to_tsvector('testthaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('testthaicfg','ข้าวเหนียว&ส้มตำ');
+     ?column?
+    ----------
+     t
+    (1 row)
+    ````
+
 ##Example 4
  If you want to use hunspell as a dictionary for the full text search.
  Make sure you have already install thai hunspell dictionay files in `pg_config --sharedir`/tsearch_data directory.
