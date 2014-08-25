@@ -27,7 +27,9 @@ If LibThai is already not installed on your system, please [check out](http://li
 
      ```cd thai_parser; make; make install```
 
-- And, for Debian/Ubuntu Linux, there is a [.deb package](http://zdk.blinkenshell.org/pg-search-thai_1-1_amd64.deb) file which you could install it with `dpkg -i <file>.deb`
+- And, for Debian/Ubuntu Linux, there is a [.deb package](http://goo.gl/agAR2p) file that you could install by:
+
+     ```curl -L -o pg-search-thai.deb http://goo.gl/agAR2p && dpkg -i pg-search-thai.deb```
 
 ##Usage
 
