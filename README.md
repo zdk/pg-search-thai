@@ -93,6 +93,10 @@ Test with,
 
    ```SELECT ts_lexize('thai_hunspell', 'ทดสอบ');```
 
+##Bugs Report and Contributing
+
+GitHub issue tracker and pull requests are welcome.
+
 ##Donate for pg-search-thai
 
 If you find it helpful, please give some tips directly to bitcoin address: `18VJMiPigEaTq5HbSxwcLKB4uHVcyYcu9p`
