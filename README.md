@@ -33,65 +33,66 @@ If LibThai is already not installed on your system, please [check out](http://li
 
 - Start the **psql** console ( Or any postgresql client, **pgAdmin** for instance ) and create the extension you have just installed by typing following commands:
 
-     ```CREATE EXTENSION thai_parser;
-     CREATE TEXT SEARCH CONFIGURATION thaicfg (PARSER = thai_parser);
-     ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple;```
+    ```CREATE EXTENSION thai_parser;```
+
+    ```CREATE TEXT SEARCH CONFIGURATION thaicfg (PARSER = thai_parser);```
+
+    ```ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple;```
 
 ##Example 1
 Check how parser works.
 
-    ```select * from ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');```
+    SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ';
 
 ##Example 2
 Try to build document from `thaicfg` configuration that uses the specified parser.
 
-    ```select to_tsvector('thaicfg', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');```
+    SELECT to_tsvector('thaicfg', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
 
 ##Example 3
 Querying
 
-    ```gdsire=# select to_tsvector('testthaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('testthaicfg','ส้มตำ');
+    SELECT to_tsvector('testthaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('testthaicfg','ส้มตำ');
      ?column?
     ----------
      t
-    (1 row)```
+    (1 row)
+
 ##Example 4
 Querying with `|` and `&` operator.
 
-    ```
-    gdsire=#  select to_tsvector('testthaicfg', 'ส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('testthaicfg','ข้าวเหนียว&ส้มตำ');
+    SELECT to_tsvector('testthaicfg', 'ส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('testthaicfg','ข้าวเหนียว&ส้มตำ');
      ?column?
     ----------
      f
     (1 row)
 
-    gdsire=#  select to_tsvector('testthaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('testthaicfg','ข้าวเหนียว&ส้มตำ');
+    SELECT to_tsvector('testthaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('testthaicfg','ข้าวเหนียว&ส้มตำ');
      ?column?
     ----------
      t
-    (1 row)```
+    (1 row)
 
 ##Example 5
  If you want to use hunspell as a dictionary for the full text search.
  Make sure you have already install thai hunspell dictionay files in `pg_config --sharedir`/tsearch_data directory.
 
-    ```
     CREATE TEXT SEARCH DICTIONARY thai_hunspell (
         TEMPLATE = ispell,
         DictFile = th_TH,
         AffFile = th_TH,
         StopWords = english
     );
-    ```
+
 
 In psql console type `\dFd` to see if dictionary is installed.
 Then,
 
-    ```ALTER TEXT SEARCH CONFIGURATION testthaicfg ADD MAPPING FOR a WITH simple, thai_hunspell;```
+    ALTER TEXT SEARCH CONFIGURATION testthaicfg ADD MAPPING FOR a WITH simple, thai_hunspell;
 
-Test with,
+And, test with,
 
-   ```SELECT ts_lexize('thai_hunspell', 'ทดสอบ');```
+    SELECT ts_lexize('thai_hunspell', 'ทดสอบ');
 
 ##Bugs Report and Contributing
 
@@ -99,8 +100,8 @@ GitHub issue tracker and pull requests are welcome.
 
 ##Donate for pg-search-thai
 
-If you find it helpful, please give some tips directly to bitcoin address: `18VJMiPigEaTq5HbSxwcLKB4uHVcyYcu9p`
-or via https://tip4commit.com/github/zdk/pg-search-thai
+If you find it helpful, please give some tips directly to bitcoin address: `18VJMiPigEaTq5HbSxwcLKB4uHVcyYcu9p`.
+Or via https://tip4commit.com/github/zdk/pg-search-thai
 I'd appreciate it, Thanks!
 
 _pg-search-thai_ is released under the GNU General Public License (GPLv2).
