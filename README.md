@@ -41,6 +41,8 @@ If LibThai is already not installed on your system, please [check out](http://li
 
     ```ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple;```
 
+- Note: This extension is only tested with `UTF-8` encoding. So, it is highly recommended to initial database with utf-8.
+
 ##Example 1
 Check how parser works.
 
