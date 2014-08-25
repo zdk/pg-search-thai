@@ -54,7 +54,7 @@ Try to build document from `thaicfg` configuration that uses the specified parse
 ##Example 3
 Querying
 
-    SELECT to_tsvector('testthaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('testthaicfg','ส้มตำ');
+    SELECT to_tsvector('thaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('thaicfg','ส้มตำ');
      ?column?
     ----------
      t
@@ -63,13 +63,13 @@ Querying
 ##Example 4
 Querying with `|` and `&` operator.
 
-    SELECT to_tsvector('testthaicfg', 'ส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('testthaicfg','ข้าวเหนียว&ส้มตำ');
+    SELECT to_tsvector('thaicfg', 'ส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('thaicfg','ข้าวเหนียว&ส้มตำ');
      ?column?
     ----------
      f
     (1 row)
 
-    SELECT to_tsvector('testthaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('testthaicfg','ข้าวเหนียว&ส้มตำ');
+    SELECT to_tsvector('thaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('thaicfg','ข้าวเหนียว&ส้มตำ');
      ?column?
     ----------
      t
@@ -90,7 +90,7 @@ Querying with `|` and `&` operator.
 In psql console type `\dFd` to see if dictionary is installed.
 Then,
 
-    ALTER TEXT SEARCH CONFIGURATION testthaicfg ADD MAPPING FOR a WITH simple, thai_hunspell;
+    ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple, thai_hunspell;
 
 And, test with,
 
