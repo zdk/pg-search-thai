@@ -108,6 +108,7 @@ int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
         ctx->text     += ctx->buf_len;
         ctx->text_len -= ctx->buf_len;
         free(ctx->pos);
+        printf("no word");
         return 0;
     } else if (ctx->cur_id == 0) {
         // the first word

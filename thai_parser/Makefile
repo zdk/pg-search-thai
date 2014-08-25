@@ -13,3 +13,8 @@ SHLIB_LINK = -liconv -lthai -L$(LIB)
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
+
+
+test:
+	gcc src/converter.c tests/test_thai_parser.c -lthai -liconv -g -o tests/test_tp
+	./tests/test_all.sh
