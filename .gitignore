@@ -1,1 +1,3 @@
 thai_parser/tests/test_tp
+thai_parser/src/*.o
+thai_parser/*.so
