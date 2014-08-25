@@ -104,7 +104,7 @@ GitHub issue tracker and pull requests are welcome.
 
 ##Donate for pg-search-thai
 
-If you find it helpful, please give some tips directly to bitcoin address: `18VJMiPigEaTq5HbSxwcLKB4uHVcyYcu9p`.
+If you find it helpful, give me a cup of coffee or some tips to bitcoin address: `18VJMiPigEaTq5HbSxwcLKB4uHVcyYcu9p`.
 Or via https://tip4commit.com/github/zdk/pg-search-thai
 I'd appreciate it, Thanks!
 
