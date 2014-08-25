@@ -19,18 +19,19 @@ If LibThai is already not installed on your system, please [check out](http://li
 
 - Install _libthai_ and _libiconv_ on your local system.
 
-- Install the extension, at project root directory, you can simply run:
+- Install the extension from source, go to project root directory (`cd pg-search-thai`). Then, you can simply run:
 
      ````make all
      ````
-- But, if you would like to just install the thai parser, just go into thai_parser directory, compile and install it, like so:
+- If you would like to install only the thai parser, just go into thai_parser directory. Then, compile and install it, like so:
 
      ````cd thai_parser; make; make install
      ````
+- And, for Debian/Ubuntu Linux, there is a [.deb package](http://zdk.blinkenshell.org/pg-search-thai_1-1_amd64.deb) file which you could install it with `dpkg -i <file>.deb`
 
 ##Usage
 
-- Start up **psql** and type:
+- Start the **psql** console ( Or any postgresql client, **pgAdmin** for instance ) and create the extension you have just installed by typing following commands:
 
      ```CREATE EXTENSION thai_parser;
      CREATE TEXT SEARCH CONFIGURATION thaicfg (PARSER = thai_parser);
