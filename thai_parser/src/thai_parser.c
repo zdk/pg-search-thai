@@ -10,7 +10,10 @@
  *-------------------------------------------------------------------------
  */
 
+#include "postgres.h"
+#include "fmgr.h"
 #include "thai_parser.h"
+#include "tokenizer.h"
 
 PG_MODULE_MAGIC; //Ensure that it doesn't load improperly versioned object file.
 

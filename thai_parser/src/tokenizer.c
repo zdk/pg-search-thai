@@ -12,6 +12,7 @@
  */
 
 #include <thai/thbrk.h>
+#include "thai_parser.h"
 #include "converter.h"
 #include "tokenizer.h"
 

@@ -20,8 +20,6 @@
 #include <ctype.h>
 #include <wchar.h>
 
-#include "postgres.h"
-#include "fmgr.h"
 
 typedef struct
 {
