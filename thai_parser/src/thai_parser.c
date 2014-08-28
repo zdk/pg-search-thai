@@ -10,15 +10,7 @@
  *-------------------------------------------------------------------------
  */
 
-#include "postgres.h"
-#include "fmgr.h"
-
-#include <thai/thbrk.h>
-#include <wchar.h>
-#include <iconv.h>
-
 #include "thai_parser.h"
-#include "converter.h"
 
 PG_MODULE_MAGIC; //Ensure that it doesn't load improperly versioned object file.
 

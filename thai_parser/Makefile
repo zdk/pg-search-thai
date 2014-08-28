@@ -1,5 +1,5 @@
 MODULE_big = thai_parser
-OBJS = src/thai_parser.o src/converter.o
+OBJS = src/thai_parser.o src/converter.o src/tokenizer.o
 
 EXTENSION = thai_parser
 DATA = sql/thai_parser--1.0.sql sql/thai_parser--unpackaged--1.0.sql
@@ -21,4 +21,4 @@ include $(PGXS)
 
 
 test:
-	gcc src/converter.c tests/test_thai_parser.c $(LIB_FLAGS) -g -o tests/test_tp && ./tests/test_all.sh
+	gcc src/converter.c src/tokenizer.c tests/test_thai_parser.c $(LIB_FLAGS) -g -o tests/test_tp && ./tests/test_all.sh

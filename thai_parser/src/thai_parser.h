@@ -15,6 +15,14 @@
 #ifndef THAI_PARSER_H
 #define THAI_PARSER_H
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <wchar.h>
+
+#include "postgres.h"
+#include "fmgr.h"
+
 typedef struct
 {
     char* text;         // the current position of text
