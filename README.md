@@ -8,7 +8,7 @@ The main purpuse is to:
 Use PostgreSQL Full Text Search for Thai language (which spaces were not used to separate words )
 
 This extension requires Thai word breaking routine in LibThai, libiconv for character encoding conversion (that requires by LibThai word breaking as it can only do tis-620 character encoding word segmentation) and
-a pre-installed postgresql (which is required for C compiler find `pg_config` to build this extension).
+a pre-installed postgresql (which is required for C compiler to find `pg_config` in order to build this extension).
 If LibThai is _not_ installed on your system, then please [check out](http://linux.thai.net/projects/libthai) for installation details or read the next installation section.
 
 ##Installation
