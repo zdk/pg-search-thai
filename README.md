@@ -46,7 +46,7 @@ If LibThai is _not_ installed on your system, then please [check out](http://lin
 ##Example 1
 Check how parser works.
 
-    SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ';
+    SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
 
 ##Example 2
 Try to build document from `thaicfg` configuration that uses the specified parser.
