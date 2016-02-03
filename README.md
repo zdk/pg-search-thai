@@ -104,9 +104,7 @@ GitHub issue tracker and pull requests are welcome.
 
 ##Donate for pg-search-thai
 
-If you find it helpful, give me a cup of coffee or some tips to bitcoin address: `18VJMiPigEaTq5HbSxwcLKB4uHVcyYcu9p`.
-Or via https://tip4commit.com/github/zdk/pg-search-thai
-I'd appreciate it, Thanks!
+`12ZDe5EYGecCeTumP92Wh2wew7j4eUDF11`
 
 _pg-search-thai_ is released under the GNU General Public License (GPLv2).
 Refer to License [FAQ](http://www.gnu.org/licenses/old-licenses/gpl-2.0-faq.html) for more information.
