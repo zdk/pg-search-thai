@@ -53,7 +53,7 @@ Try to build document from `thaicfg` configuration that uses the specified parse
 
     SELECT to_tsvector('thaicfg', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
 
-##Example 3
+## Example 3
 Querying
 
     SELECT to_tsvector('thaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('thaicfg','ส้มตำ');
