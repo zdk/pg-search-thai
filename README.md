@@ -1,15 +1,16 @@
 pg-search-thai
 ============================
 
-pg-search-thai is Thai Full Text Search extension for _PostgreSQL_.
+pg-search-thai is full text search _PostgreSQL_ extension for Thai Language.
 
-The main purpuse is to:
+Its main purpose is:
 
-Use PostgreSQL Full Text Search for Thai language (which spaces were not used to separate words )
+To enable PostgreSQL Full Text Search in Thai language (Due to Thai Language does not use spaces to separate words)
 
-This extension requires Thai word breaking routine in LibThai, libiconv for character encoding conversion (that requires by LibThai word breaking as it can only do tis-620 character encoding word segmentation) and
-a pre-installed postgresql (which is required for C compiler to find `pg_config` in order to build this extension).
-If LibThai is _not_ installed on your system, then please [check out](http://linux.thai.net/projects/libthai) for installation details or read the next installation section.
+## Prerequisite
+
+libthai, libiconv - this pg extension requires Thai word breaking functionality from the popular `LibThai` and libiconv.
+postgresql - `pg_config` in order to build this extension.
 
 ## Installation
 
@@ -26,10 +27,6 @@ If LibThai is _not_ installed on your system, then please [check out](http://lin
 - If you would like to install only the thai parser, just go into thai_parser directory. Then, compile and install it, like so:
 
      ```cd thai_parser; make; make install```
-
-- And, for Debian/Ubuntu Linux, there is a [.deb package](http://goo.gl/agAR2p) file that you could install by:
-
-     ```curl -L -o pg-search-thai.deb http://goo.gl/agAR2p && dpkg -i pg-search-thai.deb```
 
 ## Usage
 
