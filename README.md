@@ -102,10 +102,6 @@ And, test with,
 
 GitHub issue tracker and pull requests are welcome.
 
-##Donate for pg-search-thai
-
-`12ZDe5EYGecCeTumP92Wh2wew7j4eUDF11`
-
 _pg-search-thai_ is released under the GNU General Public License (GPLv2).
 Refer to License [FAQ](http://www.gnu.org/licenses/old-licenses/gpl-2.0-faq.html) for more information.
 _pg-search-thai_ is developed by Di Warachet (zdk).
