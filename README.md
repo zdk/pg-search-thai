@@ -11,7 +11,7 @@ This extension requires Thai word breaking routine in LibThai, libiconv for char
 a pre-installed postgresql (which is required for C compiler to find `pg_config` in order to build this extension).
 If LibThai is _not_ installed on your system, then please [check out](http://linux.thai.net/projects/libthai) for installation details or read the next installation section.
 
-##Installation
+## Installation
 
 - Download the [_libthai_](http://linux.thai.net/projects/libthai) (and its dependency: [_libdatrie_](http://linux.thai.net/~thep/datrie/datrie.html#Download) ).
 
@@ -31,7 +31,7 @@ If LibThai is _not_ installed on your system, then please [check out](http://lin
 
      ```curl -L -o pg-search-thai.deb http://goo.gl/agAR2p && dpkg -i pg-search-thai.deb```
 
-##Usage
+## Usage
 
 - Start the **psql** console ( Or any postgresql client, **pgAdmin** for instance ) and create the extension you have just installed by typing following commands:
 
@@ -43,12 +43,12 @@ If LibThai is _not_ installed on your system, then please [check out](http://lin
 
 - Note: This extension is only tested with `UTF-8` encoding. So, it is highly recommended to initial database with utf-8.
 
-##Example 1
+## Example 1
 Check how parser works.
 
     SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
 
-##Example 2
+## Example 2
 Try to build document from `thaicfg` configuration that uses the specified parser.
 
     SELECT to_tsvector('thaicfg', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
@@ -62,7 +62,7 @@ Querying
      t
     (1 row)
 
-##Example 4
+## Example 4
 Querying with `|` and `&` operator.
 
     SELECT to_tsvector('thaicfg', 'ส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('thaicfg','ข้าวเหนียว&ส้มตำ');
@@ -77,7 +77,7 @@ Querying with `|` and `&` operator.
      t
     (1 row)
 
-##Example 5
+## Example 5
  If you want to use hunspell as a dictionary for the full text search.
  Make sure you have already install thai hunspell dictionay files in `pg_config --sharedir`/tsearch_data directory.
 
@@ -98,10 +98,9 @@ And, test with,
 
     SELECT ts_lexize('thai_hunspell', 'ทดสอบ');
 
-##Bugs Report and Contributing
+## Bugs Report and Contributing
 
 GitHub issue tracker and pull requests are welcome.
 
 _pg-search-thai_ is released under the GNU General Public License (GPLv2).
 Refer to License [FAQ](http://www.gnu.org/licenses/old-licenses/gpl-2.0-faq.html) for more information.
-_pg-search-thai_ is developed by Di Warachet (zdk).
