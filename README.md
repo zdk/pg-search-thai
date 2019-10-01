@@ -30,6 +30,7 @@ postgresql - `pg_config` in order to build this extension.
 
 ## Usage
 
+
 - Start the **psql** console ( Or any postgresql client, **pgAdmin** for instance ) and create the extension you have just installed by typing following commands:
 
     ```CREATE EXTENSION thai_parser;```
