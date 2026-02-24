@@ -1,0 +1,45 @@
+{
+   "name": "pg_search_thai",
+   "abstract": "A Thai language parser for PostgreSQL full text search",
+   "description": "A custom text search parser for the Thai language, providing word tokenization using libthai for PostgreSQL full text search.",
+   "version": "1.0.0",
+   "maintainer": ["Warachet Samtalee <zdk@cpan.org>"],
+   "license": "gpl_2",
+   "provides": {
+      "thai_parser": {
+         "abstract": "Thai language text search parser",
+         "file": "thai_parser/sql/thai_parser--1.0.0.sql",
+         "docfile": "README.md",
+         "version": "1.0.0"
+      }
+   },
+   "prereqs": {
+      "runtime": {
+         "requires": {
+            "PostgreSQL": "9.1.0"
+         }
+      }
+   },
+   "resources": {
+      "bugtracker": {
+         "web": "https://github.com/zdk/pg-search-thai/issues"
+      },
+      "repository": {
+         "url": "git://github.com/zdk/pg-search-thai.git",
+         "web": "https://github.com/zdk/pg-search-thai",
+         "type": "git"
+      }
+   },
+   "generated_by": "Warachet Samtalee",
+   "meta-spec": {
+      "version": "1.0.0",
+      "url": "https://pgxn.org/meta/spec.txt"
+   },
+   "tags": [
+      "thai",
+      "full text search",
+      "parser",
+      "tokenizer",
+      "thai language"
+   ]
+}
