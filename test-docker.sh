@@ -99,12 +99,20 @@ REPRO_OUTPUT=$(docker exec "$CONTAINER_NAME" \
     psql -U testuser -d testdb -f /usr/src/pg-search-thai/tests/reproduce_utf8_0xb8_error.sql 2>&1) || true
 echo "$REPRO_OUTPUT"
 
+REPRO_FAILED=0
 if echo "$REPRO_OUTPUT" | grep -q "invalid byte sequence"; then
     echo "UTF-8 0xB8 error REPRODUCED: Got 'invalid byte sequence' error."
+    REPRO_FAILED=1
 fi
 
 if echo "$REPRO_OUTPUT" | grep -q "'ปร'"; then
     echo "Bug confirmed: trans_pos() buffer overflow corrupted word boundaries."
+    REPRO_FAILED=1
+fi
+
+if [ "$REPRO_FAILED" -eq 1 ]; then
+    echo "FAILED: UTF-8 0xB8 regression test detected errors."
+    exit 1
 fi
 
 echo ""

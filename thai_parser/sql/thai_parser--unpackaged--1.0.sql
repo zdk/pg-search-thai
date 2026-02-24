@@ -6,3 +6,4 @@ ALTER EXTENSION thai_parser ADD function thai_parser_get_token(internal,internal
 ALTER EXTENSION thai_parser ADD function thai_parser_end(internal);
 ALTER EXTENSION thai_parser ADD function thai_parser_lextype(internal);
 ALTER EXTENSION thai_parser ADD text search parser thai_parser;
+ALTER EXTENSION thai_parser ADD TEXT SEARCH CONFIGURATION thaicfg;

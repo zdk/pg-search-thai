@@ -26,8 +26,8 @@ int conv_code(char* from, char* to, char* in, size_t in_len,
     conv = iconv_open(to,from);
     if (conv == (iconv_t)-1) return -1;
 
-    memset(out, 0, out_len);
     if (iconv(conv, pin , &in_len, pout, &out_len) == (size_t)-1) ret = -1;
+    *out = '\0';
 
     iconv_close(conv);
     return ret;
@@ -40,13 +40,12 @@ void trans_pos(char* msg, int *pos, int pos_len)
     int msg_len = strlen(msg);
     size_t tmp_size = msg_len * 3 + 1;
     char *tmp = calloc(tmp_size, sizeof(char));
+    if (tmp == NULL) return;
 
     int i = 0;
-    while (i <= pos_len) {
+    while (i < pos_len) {
         if (i == 0) {
             len = pos[0];
-        } else if (i == pos_len) {
-            len = msg_len;
         } else {
             len += pos[i] - last_pos;
         }

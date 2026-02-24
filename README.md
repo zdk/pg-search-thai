@@ -30,13 +30,11 @@ postgresql - `pg_config` in order to build this extension.
 
 ## Usage
 
-- Start the **psql** console ( Or any postgresql client, **pgAdmin** for instance ) and create the extension you have just installed by typing following commands:
+- Start the **psql** console ( Or any postgresql client, **pgAdmin** for instance ) and create the extension you have just installed by typing the following command:
 
     ```CREATE EXTENSION thai_parser;```
 
-    ```CREATE TEXT SEARCH CONFIGURATION thaicfg (PARSER = thai_parser);```
-
-    ```ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple;```
+  This will create the parser and a default text search configuration named `thaicfg`.
 
 - Note: This extension is only tested with `UTF-8` encoding. So, it is highly recommended to initial database with utf-8.
 
