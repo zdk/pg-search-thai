@@ -25,3 +25,6 @@ CREATE TEXT SEARCH PARSER thai_parser (
     HEADLINE = pg_catalog.prsd_headline,
     LEXTYPES = thai_parser_lextype
 );
+
+CREATE TEXT SEARCH CONFIGURATION thaicfg (PARSER = thai_parser);
+ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple;

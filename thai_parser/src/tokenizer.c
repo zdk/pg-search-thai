@@ -35,7 +35,7 @@ int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
     if (ctx->cur_id == -1) {
         ctx->buf_len = 0;
         ctx->buf     = ctx->text;
-        while ((ctx->buf + ctx->buf_len) != NULL
+        while (ctx->buf_len < ctx->text_len
                 && ((int)*(ctx->buf + ctx->buf_len) & 0x80) != 0) {
             ctx->buf_len++;
         }

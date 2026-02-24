@@ -1,0 +1,4 @@
+.git
+*.o
+*.so
+thai_parser/tests/test_tp

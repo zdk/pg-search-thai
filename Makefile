@@ -8,6 +8,10 @@ install:
 
 test:
 		(cd thai_parser; make test)
+
+test-docker:
+		./test-docker.sh
+
 clean:
 		(cd thai_dictionary; make clean)
 		(cd thai_parser; make clean)
