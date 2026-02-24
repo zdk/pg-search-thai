@@ -1,3 +1,4 @@
+#!/bin/bash
 RESULT=`./tests/test_tp "ทดสอบการตัดคำภาษาไทยสำหรับ PostgreSQL Full Text Search"`
 
 echo $RESULT
@@ -5,4 +6,5 @@ if [[ "$RESULT" == ">>ทดสอบการตัดคำภาษาไท�
     echo -e "\x1B[0;32m Passes.\x1B[0m"
 else
     echo -e "\x1B[0;31m Failed!!\x1B[0m"
+    exit 1
 fi

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../src/thai_parser.h"
+#include "../src/tokenizer.h"
 int main(int argc, char* argv[])
 {
     parser_ctx_t ctx;
