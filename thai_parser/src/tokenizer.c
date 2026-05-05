@@ -43,8 +43,13 @@ int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
         if (ctx->buf_len <= 0)
             return 0;
 
-        // Allocate position array. Use maximum length
-        cell_num = ctx->buf_len / sizeof(wchar_t) + 1;
+        // Allocate position array. th_brk's `n` parameter is the size of the
+        // pos[] array in elements; we pass ctx->buf_len there (see th_ubrk),
+        // so pos[] must hold at least that many ints. The previous formula
+        // (buf_len / sizeof(wchar_t) + 1) under-sized by ~4x on long Thai
+        // input, letting th_brk overrun the heap and corrupt adjacent buffers
+        // — surfacing later as 'invalid byte sequence for encoding "UTF8"'.
+        cell_num = ctx->buf_len + 1;
         ctx->pos = (int*)calloc(sizeof(int), cell_num);
 
         // word break for utf-8 text
@@ -60,6 +65,15 @@ int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
         ctx->text_len -= ctx->buf_len;
         free(ctx->pos);
         return 0;
+    } else if (ctx->num == 0) {
+        // No breakpoints inside the run -> the whole buf is one Thai word.
+        // (Without this special case, the cur_id==0 branch below would read
+        //  pos[0] which libthai may leave set to the TIS-620 end-position;
+        //  using that as a UTF-8 byte length cuts mid-character and surfaces
+        //  as 'invalid byte sequence for encoding "UTF8"' in to_tsvector and
+        //  plainto_tsquery for single-word Thai inputs like "แจ็ค" or "กรุงเทพ".)
+        *token_len = ctx->buf_len;
+        *token     = ctx->buf;
     } else if (ctx->cur_id == 0) {
         // the first word
         *token_len = ctx->pos[0];
