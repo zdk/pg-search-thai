@@ -7,6 +7,22 @@ Its main purpose is:
 
 To enable PostgreSQL Full Text Search in Thai language (Due to Thai Language does not use spaces to separate words)
 
+## Performance
+
+Benchmarked against **Elasticsearch 8.15 with the built-in `thai` analyzer** on
+100,000 Thai Wikipedia articles, single Docker host, warm cache:
+
+| Metric | pg-search-thai | ES (thai analyzer) |
+|---|---|---|
+| Single-term query (p50 / p95) | **1.4 ms / 4.3 ms** | 5.7 ms / 18.9 ms |
+| Boolean AND (p50 / p95) | **1.6 ms / 5.8 ms** | 6.7 ms / 9.8 ms |
+| Boolean OR (p50 / p95) | **2.6 ms / 3.2 ms** | 6.1 ms / 9.6 ms |
+| Index size | **105 MB** | 427 MB |
+| Write → searchable lag | 0 ms (transactional) | ~1 s (refresh interval) |
+
+Full reproducible harness, methodology, and caveats: see [`bench/BENCHMARKS.md`](bench/BENCHMARKS.md)
+and [`bench/README.md`](bench/README.md).
+
 ## Prerequisite
 
 libthai, libiconv - this pg extension requires Thai word breaking functionality from the popular `LibThai` and libiconv.
