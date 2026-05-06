@@ -147,6 +147,67 @@ ORDER  BY rank DESC;
   1 | ส้มตำไทย |  0.076
 ```
 
+### From your app
+
+The query is plain SQL; only the parameter-binding syntax differs by client. Same `articles` table as above:
+
+**Node.js** ([`pg`](https://node-postgres.com))
+
+```js
+import { Client } from 'pg';
+
+const db = new Client({ connectionString: process.env.DATABASE_URL });
+await db.connect();
+
+const { rows } = await db.query(
+  `SELECT id, title, ts_rank(search, q) AS rank
+   FROM   articles, to_tsquery('thaicfg', $1) q
+   WHERE  search @@ q
+   ORDER  BY rank DESC`,
+  ['ส้มตำ'],
+);
+console.log(rows);
+```
+
+**Python** ([`psycopg`](https://www.psycopg.org/psycopg3/) v3)
+
+```python
+import os, psycopg
+
+with psycopg.connect(os.environ["DATABASE_URL"]) as conn, conn.cursor() as cur:
+    cur.execute("""
+        SELECT id, title, ts_rank(search, q) AS rank
+        FROM   articles, to_tsquery('thaicfg', %s) q
+        WHERE  search @@ q
+        ORDER  BY rank DESC
+    """, ("ส้มตำ",))
+    for row in cur.fetchall():
+        print(row)
+```
+
+**Go** ([`pgx`](https://github.com/jackc/pgx) v5)
+
+```go
+ctx := context.Background()
+conn, _ := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
+defer conn.Close(ctx)
+
+rows, _ := conn.Query(ctx, `
+    SELECT id, title, ts_rank(search, q) AS rank
+    FROM   articles, to_tsquery('thaicfg', $1) q
+    WHERE  search @@ q
+    ORDER  BY rank DESC`, "ส้มตำ")
+defer rows.Close()
+
+for rows.Next() {
+    var id int; var title string; var rank float32
+    rows.Scan(&id, &title, &rank)
+    fmt.Println(id, title, rank)
+}
+```
+
+> Pass user input as a parameter (`$1` / `%s`), not by string-concatenation, so it goes through `to_tsquery` safely.
+
 ### Advanced: hunspell dictionary
 
 For richer normalization, drop Thai hunspell files into `$(pg_config --sharedir)/tsearch_data/`:
