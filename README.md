@@ -25,26 +25,41 @@ Benchmarked against **Elasticsearch 8.15 with the built-in `thai` analyzer** on
 Full reproducible harness, methodology, and caveats: see [`bench/BENCHMARKS.md`](bench/BENCHMARKS.md)
 and [`bench/README.md`](bench/README.md).
 
-## Prerequisite
-
-libthai, libiconv - this pg extension requires Thai word breaking functionality from the popular `LibThai` and libiconv.
-postgresql - `pg_config` in order to build this extension.
-
 ## Installation
 
-- Download the [_libthai_](http://linux.thai.net/projects/libthai) (and its dependency: [_libdatrie_](http://linux.thai.net/~thep/datrie/datrie.html#Download) ).
+### Quick start with Docker
 
-- Download the [_libiconv_](https://www.gnu.org/software/libiconv/).
+Spins up Postgres 18 with `thai_parser` pre-built and the extension auto-created:
 
-- Install _libthai_ and _libiconv_ on your local system.
+    git clone https://github.com/zdk/pg-search-thai.git
+    cd pg-search-thai
+    docker compose up -d
 
-- Install the extension from source, go to project root directory (`cd pg-search-thai`). Then, you can simply run:
+Connect with `psql` (password: `testpass`):
 
-     ```make all```
+    psql -h localhost -U testuser -d testdb \
+      -c "SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้ง');"
 
-- If you would like to install only the thai parser, just go into thai_parser directory. Then, compile and install it, like so:
+### From source
 
-     ```cd thai_parser; make; make install```
+Install `libthai` and the Postgres build headers via your package manager:
+
+    # Debian / Ubuntu
+    sudo apt install -y build-essential libthai-dev postgresql-server-dev-all
+
+    # macOS (Homebrew)
+    brew install libthai libdatrie
+
+Then build and install the extension:
+
+    git clone https://github.com/zdk/pg-search-thai.git
+    cd pg-search-thai
+    make
+    sudo make install
+
+To install only the parser (without the bundled hunspell dictionary files):
+
+    cd thai_parser && make && sudo make install
 
 ## Usage
 
