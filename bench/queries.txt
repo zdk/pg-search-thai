@@ -1,0 +1,59 @@
+# Query set for Thai full-text search benchmark.
+# Format: <type>\t<query>
+#   single  — one term
+#   and     — two terms, both required
+#   or      — two terms, either matches
+# Lines starting with # are ignored.
+
+single	ประเทศไทย
+single	กรุงเทพมหานคร
+single	ภาษาไทย
+single	ราชอาณาจักร
+single	ประวัติศาสตร์
+single	วัฒนธรรม
+single	เศรษฐกิจ
+single	การศึกษา
+single	มหาวิทยาลัย
+single	โรงเรียน
+single	พระบาทสมเด็จ
+single	รัฐธรรมนูญ
+single	พุทธศาสนา
+single	สงครามโลก
+single	รถไฟฟ้า
+single	อาหารไทย
+single	ดนตรีไทย
+single	ภาพยนตร์
+single	วรรณกรรม
+single	กีฬา
+single	วิทยาศาสตร์
+single	เทคโนโลยี
+single	การเมือง
+single	สิ่งแวดล้อม
+single	การเกษตร
+single	อุตสาหกรรม
+single	ท่องเที่ยว
+single	ศิลปะ
+single	สถาปัตยกรรม
+single	ปรัชญา
+single	ส้มตำ
+single	ต้มยำกุ้ง
+single	ข้าวเหนียว
+single	จังหวัดเชียงใหม่
+single	ภาคใต้
+
+and	ประเทศไทย	วัฒนธรรม
+and	กรุงเทพ	ประวัติศาสตร์
+and	มหาวิทยาลัย	การศึกษา
+and	พุทธศาสนา	วัด
+and	อาหารไทย	ภาคเหนือ
+and	กีฬา	โอลิมปิก
+and	วิทยาศาสตร์	เทคโนโลยี
+and	เศรษฐกิจ	การค้า
+
+or	ส้มตำ	ต้มยำกุ้ง
+or	เชียงใหม่	เชียงราย
+or	ภาคเหนือ	ภาคใต้
+or	ภาพยนตร์	ดนตรี
+or	โรงเรียน	มหาวิทยาลัย
+or	รัฐบาล	รัฐสภา
+or	พระมหากษัตริย์	ราชวงศ์
