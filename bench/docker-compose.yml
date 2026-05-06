@@ -1,0 +1,50 @@
+services:
+  pg:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: bench-pg
+    environment:
+      POSTGRES_DB: bench
+      POSTGRES_USER: bench
+      POSTGRES_PASSWORD: bench
+    ports:
+      - "5433:5432"
+    volumes:
+      # PG18+ wants the mount at /var/lib/postgresql (parent of data dir) so
+      # pg_upgrade --link works across versions.
+      - pg-data:/var/lib/postgresql
+    shm_size: 1gb
+    # tuned for bulk-load + GIN-index build, modest single-host setup
+    command:
+      - postgres
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - work_mem=64MB
+      - -c
+      - maintenance_work_mem=512MB
+      - -c
+      - max_wal_size=4GB
+
+  es:
+    build:
+      context: .
+      dockerfile: Dockerfile.es
+    container_name: bench-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+volumes:
+  pg-data:
+  es-data:
