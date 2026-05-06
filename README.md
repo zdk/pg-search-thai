@@ -63,68 +63,105 @@ To install only the parser (without the bundled hunspell dictionary files):
 
 ## Usage
 
-- Start the **psql** console ( Or any postgresql client, **pgAdmin** for instance ) and create the extension you have just installed by typing the following command:
+Enable the extension (UTF-8 databases only):
 
-    ```CREATE EXTENSION thai_parser;```
+    CREATE EXTENSION thai_parser;
 
-  This will create the parser and a default text search configuration named `thaicfg`.
+This installs the `thai_parser` parser and a text search configuration named `thaicfg`.
 
-- Note: This extension is only tested with `UTF-8` encoding. So, it is highly recommended to initial database with utf-8.
+### Quick tour
 
-## Example 1
-Check how parser works.
+Four primitives: `ts_parse` (debug), `to_tsvector` (index), `to_tsquery` (query), `@@` (match).
 
-    SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
+**1. Tokenize.** libthai finds word boundaries even without spaces:
 
-## Example 2
-Try to build document from `thaicfg` configuration that uses the specified parser.
+```
+SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้ง Thai shrimp soup');
+ tokid | token
+-------+--------
+    97 | ต้มยำ
+    97 | กุ้ง
+    99 |
+    98 | Thai
+    99 |
+    98 | shrimp
+(...)
+-- tokid 97 = Thai word, 98 = ASCII word, 99 = space
+```
 
-    SELECT to_tsvector('thaicfg', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
+**2. Build a `tsvector`.** `thaicfg` only indexes Thai tokens — English passes through unindexed unless you add a mapping for `asciiword`:
 
-## Example 3
-Querying
+```
+SELECT to_tsvector('thaicfg', 'ต้มยำกุ้ง');
+   to_tsvector
+-----------------
+ 'กุ้ง':2 'ต้มยำ':1
+```
 
-    SELECT to_tsvector('thaicfg', 'the land of somtum (ส้มตำ)') @@ to_tsquery('thaicfg','ส้มตำ');
-     ?column?
-    ----------
-     t
-    (1 row)
+**3. Match.** `@@` returns boolean:
 
-## Example 4
-Querying with `|` and `&` operator.
+```
+SELECT to_tsvector('thaicfg', 'ส้มตำกับข้าวเหนียว')
+    @@ to_tsquery('thaicfg', 'ส้มตำ');
+ ?column?
+----------
+ t
+```
 
-    SELECT to_tsvector('thaicfg', 'ส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('thaicfg','ข้าวเหนียว&ส้มตำ');
-     ?column?
-    ----------
-     f
-    (1 row)
+**4. Boolean operators** — `&` and, `|` or, `!` not, `()` group. Thai words written together still match:
 
-    SELECT to_tsvector('thaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง ต้มยำกุ้ง in thailand') @@ to_tsquery('thaicfg','ข้าวเหนียว&ส้มตำ');
-     ?column?
-    ----------
-     t
-    (1 row)
+```
+-- "ข้าวเหนียวส้มตำ" with no space between the two words:
+SELECT to_tsvector('thaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง')
+    @@ to_tsquery('thaicfg', 'ข้าวเหนียว & ส้มตำ');
+ ?column?
+----------
+ t
+```
 
-## Example 5
- If you want to use hunspell as a dictionary for the full text search.
- Make sure you have already install thai hunspell dictionay files in `pg_config --sharedir`/tsearch_data directory.
+### Searching a real table
+
+The shape you'll use in an app — store text, keep a `tsvector` in sync, GIN-index it, query through the index:
+
+```sql
+CREATE TABLE articles (
+    id     SERIAL PRIMARY KEY,
+    title  TEXT NOT NULL,
+    body   TEXT NOT NULL,
+    search tsvector GENERATED ALWAYS AS
+        (to_tsvector('thaicfg', title || ' ' || body)) STORED
+);
+CREATE INDEX articles_search_idx ON articles USING GIN (search);
+
+INSERT INTO articles (title, body) VALUES
+    ('ส้มตำไทย',  'ส้มตำเป็นอาหารพื้นบ้านของภาคอีสาน'),
+    ('ต้มยำกุ้ง', 'ต้มยำกุ้งเป็นซุปรสจัดที่มีชื่อเสียงระดับโลก'),
+    ('ผัดไทย',   'ผัดไทยเป็นอาหารเส้นที่นิยมไปทั่วประเทศ');
+
+SELECT id, title, ts_rank(search, q) AS rank
+FROM   articles, to_tsquery('thaicfg', 'ส้มตำ') q
+WHERE  search @@ q
+ORDER  BY rank DESC;
+ id |  title   |  rank
+----+----------+--------
+  1 | ส้มตำไทย |  0.076
+```
+
+### Advanced: hunspell dictionary
+
+For richer normalization, drop Thai hunspell files into `$(pg_config --sharedir)/tsearch_data/`:
 
     CREATE TEXT SEARCH DICTIONARY thai_hunspell (
-        TEMPLATE = ispell,
-        DictFile = th_TH,
-        AffFile = th_TH,
+        TEMPLATE  = ispell,
+        DictFile  = th_TH,
+        AffFile   = th_TH,
         StopWords = english
     );
-
-
-In psql console type `\dFd` to see if dictionary is installed.
-Then,
-
-    ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR a WITH simple, thai_hunspell;
-
-And, test with,
-
+    ALTER TEXT SEARCH CONFIGURATION thaicfg
+        ADD MAPPING FOR a WITH simple, thai_hunspell;
     SELECT ts_lexize('thai_hunspell', 'ทดสอบ');
+
+Run `\dFd` in `psql` to confirm the dictionary is installed.
 
 ## Bugs Report and Contributing
 
