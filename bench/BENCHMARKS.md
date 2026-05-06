@@ -6,6 +6,8 @@
 
 ## Indexing
 
+![Indexing time and size](indexing.png)
+
 | Metric | pg-search-thai | Elasticsearch (thai analyzer) |
 |---|---|---|
 | Docs ingested | 100,000 | 100,000 |
@@ -16,6 +18,8 @@
 | Total table+index | 889.9 MB | 426.6 MB |
 
 ## Query latency
+
+![Query latency by kind](latency.png)
 
 | Query kind | Engine | n | p50 | p95 | p99 | mean |
 |---|---|---|---|---|---|---|

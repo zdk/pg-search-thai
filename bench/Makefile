@@ -26,7 +26,7 @@ report:
 	@echo "wrote BENCHMARKS.md"
 
 clean:
-	rm -f results-*.json BENCHMARKS.md
+	rm -f results-*.json BENCHMARKS.md latency.png indexing.png
 
 # wipe everything including corpus + volumes
 nuke: clean
