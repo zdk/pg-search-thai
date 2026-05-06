@@ -12,6 +12,8 @@ To enable PostgreSQL Full Text Search in Thai language (Due to Thai Language doe
 Benchmarked against **Elasticsearch 8.15 with the built-in `thai` analyzer** on
 100,000 Thai Wikipedia articles, single Docker host, warm cache:
 
+![Query latency by kind — pg-search-thai vs Elasticsearch](bench/latency.png)
+
 | Metric | pg-search-thai | ES (thai analyzer) |
 |---|---|---|
 | Single-term query (p50 / p95) | **1.4 ms / 4.3 ms** | 5.7 ms / 18.9 ms |
