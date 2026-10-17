@@ -69,7 +69,13 @@ thai_parser_end(PG_FUNCTION_ARGS)
 Datum
 thai_parser_lextype(PG_FUNCTION_ARGS)
 {
-    LexDescr* descr = (LexDescr*)palloc(sizeof(LexDescr) * (2 + 1));
+    // Three token types plus the terminating entry. PostgreSQL walks this array
+    // until it finds lexid == 0, so the terminator must be right after the last
+    // real entry and inside the allocation. It used to be written to descr[26]
+    // of a 3-entry array: a write far out of bounds, and no terminator where it
+    // is read, so ts_debug() and ADD MAPPING FOR an unknown token type read
+    // past the array and could crash the server.
+    LexDescr* descr = (LexDescr*)palloc(sizeof(LexDescr) * (3 + 1));
     descr[0].lexid  = 97;
     descr[0].alias  = pstrdup("a");
     descr[0].descr  = pstrdup("Thai word");
@@ -79,7 +85,7 @@ thai_parser_lextype(PG_FUNCTION_ARGS)
     descr[2].lexid  = 99;
     descr[2].alias  = pstrdup("c");
     descr[2].descr  = pstrdup("Space");
-    descr[26].lexid = 0;
+    descr[3].lexid  = 0;
 
     PG_RETURN_POINTER(descr);
 }
