@@ -99,12 +99,22 @@ int get_non_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
     if (ctx->text_len <= 0)
         return 0;
 
-    while (isspace(*(ctx->text + len))) {
+    // Both scans MUST stop at text_len. PostgreSQL hands the parser a text
+    // datum that is not NUL-terminated, so a token that runs to the end of the
+    // input would otherwise keep reading whatever bytes follow it in memory for
+    // as long as they look like letters, digits or punctuation -- in practice
+    // leftovers from an earlier call, so 'Thai shrimp soup' indexed its last
+    // word as 'soupcctv'. The cast matters too: the <ctype.h> functions are
+    // undefined for negative char values, which every byte >= 0x80 (all Thai
+    // text) is where char is signed.
+    while (len < ctx->text_len && isspace((unsigned char)ctx->text[len])) {
         len++;
     }
 
     if (len == 0) {
-        while (isalnum(*(ctx->text + len)) || ispunct(*(ctx->text + len))) {
+        while (len < ctx->text_len
+               && (isalnum((unsigned char)ctx->text[len])
+                   || ispunct((unsigned char)ctx->text[len]))) {
             len++;
         }
         ret = 'b';

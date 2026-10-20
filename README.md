@@ -86,17 +86,36 @@ SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้ง Thai shrimp s
     99 |
     98 | shrimp
 (...)
--- tokid 97 = Thai word, 98 = ASCII word, 99 = space
+-- tokid 97 = Thai word (a), 98 = English word or number (b), 99 = space (c)
 ```
 
-**2. Build a `tsvector`.** `thaicfg` only indexes Thai tokens — English passes through unindexed unless you add a mapping for `asciiword`:
+These token types are this parser's own. The standard parser's names such as
+`asciiword` do not exist here: `SELECT * FROM ts_token_type('thai_parser')`
+lists `a`, `b` and `c`.
+
+**2. Build a `tsvector`.** `thaicfg` indexes Thai words and, since 1.1.0,
+English words and numbers too, lowercased by the `simple` dictionary. Thai text
+routinely mixes in English (street names, brands, `CCTV`, `BTS`), so both are
+searchable:
 
 ```
-SELECT to_tsvector('thaicfg', 'ต้มยำกุ้ง');
-   to_tsvector
------------------
- 'กุ้ง':2 'ต้มยำ':1
+SELECT to_tsvector('thaicfg', 'ต้มยำกุ้ง Thai shrimp soup');
+                 to_tsvector
+----------------------------------------------
+ 'shrimp':4 'soup':5 'thai':3 'กุ้ง':2 'ต้มยำ':1
 ```
+
+Up to 1.0.0, `thaicfg` mapped only Thai words, so English was parsed and then
+dropped. To upgrade a database created with 1.0.0, see
+[Upgrading from 1.0.0](#upgrading-from-100).
+
+One quirk: punctuation stays attached to an English token, so `(CCTV)` is
+indexed as `'(cctv)'` and `BTS.` as `'bts.'`, and a search for `cctv` or `bts`
+misses them. If your text has such punctuation, strip ASCII punctuation from
+both the text and the query first, for example with
+``regexp_replace(t, '[!-/:-@\[-`{-~]', ' ', 'g')``. Do not use
+`[^[:alnum:]]` for this: Thai vowels and tone marks are not `[:alnum:]`, and
+removing them breaks Thai words apart.
 
 **3. Match.** `@@` returns boolean:
 
@@ -210,19 +229,95 @@ for rows.Next() {
 
 ### Advanced: hunspell dictionary
 
-For richer normalization, drop Thai hunspell files into `$(pg_config --sharedir)/tsearch_data/`:
+For richer normalization, use the bundled Thai hunspell files. `make install`
+(and the Docker image) puts them in `$(pg_config --sharedir)/tsearch_data/` as
+`th_th.dict` and `th_th.affix`. The names must be lowercase: PostgreSQL only
+opens text search files named with lowercase letters, digits and `_`.
 
     CREATE TEXT SEARCH DICTIONARY thai_hunspell (
         TEMPLATE  = ispell,
-        DictFile  = th_TH,
-        AffFile   = th_TH,
+        DictFile  = th_th,
+        AffFile   = th_th,
         StopWords = english
     );
-    ALTER TEXT SEARCH CONFIGURATION thaicfg
-        ADD MAPPING FOR a WITH simple, thai_hunspell;
-    SELECT ts_lexize('thai_hunspell', 'ทดสอบ');
+    SELECT ts_lexize('thai_hunspell', 'ทดสอบ');     -- {ทดสอบ}
+
+    -- Your own configuration, copied from thaicfg:
+    CREATE TEXT SEARCH CONFIGURATION thaicfg_hunspell (COPY = thaicfg);
+    ALTER TEXT SEARCH CONFIGURATION thaicfg_hunspell
+        ALTER MAPPING FOR a WITH thai_hunspell, simple;
+    SELECT to_tsvector('thaicfg_hunspell', 'ทดสอบการตัดคำ');
+
+Three details matter here:
+
+- `thaicfg` already maps Thai words (`a`), so use `ALTER MAPPING`. A second
+  `ADD MAPPING FOR a` fails with a duplicate key error.
+- Put `thai_hunspell` **before** `simple`. PostgreSQL tries the dictionaries in
+  order and stops at the first one that recognizes the word. `simple`
+  recognizes every word, so anything after it is never consulted.
+- Change a copy, not `thaicfg` itself. `thaicfg` belongs to the extension, and
+  `pg_dump` does not dump changes made to an extension's own objects, so a
+  mapping altered on `thaicfg` is silently gone after a dump and restore. A
+  configuration you created yourself is dumped normally.
 
 Run `\dFd` in `psql` to confirm the dictionary is installed.
+
+## Upgrading from 1.0.0
+
+After installing the new version, run this in **each database** that uses the
+extension (extensions are per database):
+
+```sql
+ALTER EXTENSION thai_parser UPDATE;
+SELECT extversion FROM pg_extension WHERE extname = 'thai_parser';   -- 1.1.0
+```
+
+It adds the English mapping to `thaicfg`. It is safe on a database that already
+added `ADD MAPPING FOR b` by hand; it checks first.
+
+**Then recompute stored tsvectors.** The update changes how new text is
+indexed, not what is already stored. It matters for two reasons:
+
+- Rows indexed under 1.0.0 do not contain their English words.
+- If you had mapped English yourself, rows indexed by a library older than this
+  release may hold damaged English words. An English word or number at the very
+  end of a text used to absorb stray bytes (`soup` stored as `soupcctv`), so a
+  search for the real word misses the row. That was a bug in the C code, fixed
+  in the same release; `ALTER EXTENSION` does not repair data it produced.
+
+For a generated column (PostgreSQL 17+; this rewrites the table and locks it
+while it runs):
+
+```sql
+ALTER TABLE articles ALTER COLUMN search SET EXPRESSION AS
+    (to_tsvector('thaicfg', title || ' ' || body));
+ANALYZE articles;
+```
+
+For a column maintained by a trigger or by your application, rewrite it with an
+`UPDATE`.
+
+### Why the English mapping is part of the extension
+
+`thaicfg` belongs to the extension, and `pg_dump` does not dump changes made to
+an extension's own objects. A dump contains only `CREATE EXTENSION
+thai_parser`, and the restore creates `thaicfg` exactly as the installed
+version ships it. So under 1.0.0, an English mapping added by hand disappeared
+on every dump and restore, with no error: Thai searches kept working and English
+searches quietly found nothing. Shipping the mapping in the extension script
+means `CREATE EXTENSION` recreates it.
+
+The dump does not record the extension version either. A restore gets the
+default version of the server it is restored into, so check it afterwards:
+
+```sql
+SELECT extversion FROM pg_extension WHERE extname = 'thai_parser';
+SELECT to_tsvector('thaicfg', 'กล้อง CCTV');                 -- includes 'cctv'
+```
+
+If you customize `thaicfg` further, customize a copy instead
+(`CREATE TEXT SEARCH CONFIGURATION my_thai (COPY = thaicfg)`); a configuration
+you created is dumped normally.
 
 ## Bugs Report and Contributing
 
