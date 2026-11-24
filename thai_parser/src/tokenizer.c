@@ -13,19 +13,63 @@
 
 #include <thai/thbrk.h>
 #include "thai_parser.h"
-#include "converter.h"
 #include "tokenizer.h"
+
+/* Thai letters and marks: U+0E01..U+0E3A and U+0E40..U+0E4E. */
+static int is_thai(const char* text, int len)
+{
+    const unsigned char* s = (const unsigned char*)text;
+
+    if (len < 3 || s[0] != 0xE0)
+        return 0;
+    return (s[1] == 0xB8 && s[2] >= 0x81 && s[2] <= 0xBA)
+        || (s[1] == 0xB9 && s[2] >= 0x80 && s[2] <= 0x8E);
+}
+
+/* ASCII blanks and control chars, NBSP, U+2000..U+206F, U+3000. */
+static int is_blank(const char* text, int len)
+{
+    const unsigned char* s = (const unsigned char*)text;
+
+    if (s[0] < 0x80)
+        return s[0] <= ' ' || s[0] == 0x7F;
+    if (len >= 2 && s[0] == 0xC2)
+        return s[1] == 0xA0;
+    if (len >= 3 && s[0] == 0xE2)
+        return s[1] == 0x80 || (s[1] == 0x81 && s[2] <= 0xAF);
+    return len >= 3 && s[0] == 0xE3 && s[1] == 0x80 && s[2] == 0x80;
+}
+
+/* Byte length of the UTF-8 char at text, never past len. */
+static int char_len(const char* text, int len)
+{
+    unsigned char c = (unsigned char)*text;
+    int n = c < 0xC0 ? 1 : c < 0xE0 ? 2 : c < 0xF0 ? 3 : 4;
+
+    return n < len ? n : len;
+}
 
 int th_ubrk(char* text, int* pos, int text_len)
 {
-    int num = 0;
-    char* tis_text = calloc(text_len, sizeof(char));
-    conv_code("utf-8", "tis620", text, text_len, tis_text, text_len);
+    /* A Thai char is 3 bytes in UTF-8 and 1 byte in TIS-620. */
+    int n = text_len / 3;
+    int num, i;
+    thchar_t* tis = malloc(n + 1);
 
-    num = th_brk((const thchar_t*)tis_text, pos, text_len);
-    trans_pos(tis_text, pos, num);
+    if (tis == NULL)
+        return 0;
 
-    free(tis_text);
+    for (i = 0; i < n; i++) {
+        unsigned char* s = (unsigned char*)text + 3 * i;
+        tis[i] = (s[1] == 0xB8 ? 0xA0 : 0xE0) + (s[2] & 0x3F);
+    }
+    tis[n] = 0;
+
+    num = th_brk(tis, pos, n);
+    for (i = 0; i < num; i++)
+        pos[i] *= 3;
+
+    free(tis);
     return num;
 }
 
@@ -35,9 +79,8 @@ int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
     if (ctx->cur_id == -1) {
         ctx->buf_len = 0;
         ctx->buf     = ctx->text;
-        while (ctx->buf_len < ctx->text_len
-                && ((int)*(ctx->buf + ctx->buf_len) & 0x80) != 0) {
-            ctx->buf_len++;
+        while (is_thai(ctx->buf + ctx->buf_len, ctx->text_len - ctx->buf_len)) {
+            ctx->buf_len += 3;
         }
 
         if (ctx->buf_len <= 0)
@@ -94,41 +137,23 @@ int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
 
 int get_non_thai_word(parser_ctx_t* ctx, char** token, int *token_len)
 {
-    int ret = 0;
     int len = 0;
+    int blank;
+
     if (ctx->text_len <= 0)
         return 0;
 
-    // Both scans MUST stop at text_len. PostgreSQL hands the parser a text
-    // datum that is not NUL-terminated, so a token that runs to the end of the
-    // input would otherwise keep reading whatever bytes follow it in memory for
-    // as long as they look like letters, digits or punctuation -- in practice
-    // leftovers from an earlier call, so 'Thai shrimp soup' indexed its last
-    // word as 'soupcctv'. The cast matters too: the <ctype.h> functions are
-    // undefined for negative char values, which every byte >= 0x80 (all Thai
-    // text) is where char is signed.
-    while (len < ctx->text_len && isspace((unsigned char)ctx->text[len])) {
-        len++;
-    }
+    /* Take the run of chars that are all blank, or all not blank. */
+    blank = is_blank(ctx->text, ctx->text_len);
+    do {
+        len += char_len(ctx->text + len, ctx->text_len - len);
+    } while (len < ctx->text_len
+            && !is_thai(ctx->text + len, ctx->text_len - len)
+            && is_blank(ctx->text + len, ctx->text_len - len) == blank);
 
-    if (len == 0) {
-        while (len < ctx->text_len
-               && (isalnum((unsigned char)ctx->text[len])
-                   || ispunct((unsigned char)ctx->text[len]))) {
-            len++;
-        }
-        ret = 'b';
-    } else {
-        ret = 'c';
-    }
-
-    if (len > 0) {
-        *token         = ctx->text;
-        *token_len     = len;
-        ctx->text     += len;
-        ctx->text_len -= len;
-        return ret;
-    } else {
-        return 0;
-    }
+    *token         = ctx->text;
+    *token_len     = len;
+    ctx->text     += len;
+    ctx->text_len -= len;
+    return blank ? 'c' : 'b';
 }

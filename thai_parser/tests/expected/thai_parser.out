@@ -1,0 +1,98 @@
+CREATE EXTENSION thai_parser;
+-- Unaligned output, so column widths cannot differ between psql versions.
+\pset format unaligned
+\pset tuples_only on
+-- Token types. This call used to crash the server.
+SELECT * FROM ts_token_type('thai_parser');
+97|a|Thai word
+98|b|Non-Thai word
+99|c|Space
+-- Thai run with several words
+SELECT * FROM ts_parse('thai_parser', 'ข้าวเหนียวส้มตำไก่ย่าง');
+97|ข้าวเหนียว
+97|ส้มตำ
+97|ไก่
+97|ย่าง
+-- Thai run that is one word, so libthai finds no break
+SELECT * FROM ts_parse('thai_parser', 'กรุงเทพ');
+97|กรุงเทพ
+-- Thai mixed with ASCII words and spaces
+SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้ง Thai soup 2024');
+97|ต้มยำ
+97|กุ้ง
+99| 
+98|Thai
+99| 
+98|soup
+99| 
+98|2024
+-- Non-Thai chars must not join a Thai run.
+-- Curly quotes
+SELECT * FROM ts_parse('thai_parser', '“ต้มยำกุ้ง”อร่อย');
+99|“
+97|ต้มยำ
+97|กุ้ง
+99|”
+97|อร่อย
+-- Emoji
+SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้ง😀อร่อย');
+97|ต้มยำ
+97|กุ้ง
+98|😀
+97|อร่อย
+-- Zero width space
+SELECT * FROM ts_parse('thai_parser', U&'ต้มยำกุ้ง\200Bอร่อย');
+97|ต้มยำ
+97|กุ้ง
+99|​
+97|อร่อย
+-- No-break space
+SELECT * FROM ts_parse('thai_parser', U&'ต้มยำกุ้ง\00A0อร่อย');
+97|ต้มยำ
+97|กุ้ง
+99| 
+97|อร่อย
+-- Accented Latin stays one word
+SELECT * FROM ts_parse('thai_parser', 'ร้านcaféอร่อย');
+97|ร้าน
+98|café
+97|อร่อย
+-- Thai digits
+SELECT * FROM ts_parse('thai_parser', 'ราคา๑๕๐บาท');
+97|ราคา
+98|๑๕๐
+97|บาท
+-- Chinese
+SELECT * FROM ts_parse('thai_parser', 'กิน中文ภาษาไทย');
+97|กิน
+98|中文
+97|ภาษา
+97|ไทย
+-- A control char must not cut the rest of the text
+SELECT to_tsvector('thaicfg', E'ต้มยำ\x01กุ้ง อร่อย');
+'กุ้ง':2 'ต้มยำ':1 'อร่อย':3
+-- The parser must stop at the end of its text, not read the next column.
+CREATE TEMP TABLE overread (a text, b text);
+INSERT INTO overread VALUES ('abc', repeat('x', 15));
+SELECT (ts_parse('thai_parser', a)).* FROM overread;
+98|abc
+-- A long text in curly quotes is still indexed.
+SELECT length(to_tsvector('thaicfg', '“' || repeat('ต้มยำกุ้ง', 200) || '”'));
+2
+-- A long Thai run with no spaces parses in linear time.
+SELECT count(*) FROM ts_parse('thai_parser', repeat('ต้มยำกุ้ง', 20000));
+40000
+-- Indexing and matching
+SELECT to_tsvector('thaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง');
+'ข้าวเหนียว':1 'ย่าง':4 'ส้มตำ':2 'ไก่':3
+SELECT to_tsvector('thaicfg', 'ข้าวเหนียวส้มตำไก่ย่าง') @@ to_tsquery('thaicfg', 'ข้าวเหนียว & ส้มตำ');
+t
+SELECT to_tsvector('thaicfg', 'ส้มตำไก่ย่าง') @@ to_tsquery('thaicfg', 'ข้าวเหนียว & ส้มตำ');
+f
+SELECT to_tsvector('thaicfg', '“ต้มยำกุ้ง”อร่อย') @@ to_tsquery('thaicfg', 'กุ้ง');
+t
+SELECT ts_headline('thaicfg', 'ส้มตำไทย ต้มยำกุ้ง', to_tsquery('thaicfg', 'ต้มยำ'));
+ส้มตำไทย <b>ต้มยำ</b>กุ้ง
+-- Non-Thai words are indexed too; curly quotes are not part of them.
+SELECT to_tsvector('thaicfg', 'ราคา๑๕๐บาท “CCTV” café');
+'café':5 'cctv':4 'บาท':3 'ราคา':1 '๑๕๐':2

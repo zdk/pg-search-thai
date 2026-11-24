@@ -81,7 +81,7 @@ thai_parser_lextype(PG_FUNCTION_ARGS)
     descr[0].descr  = pstrdup("Thai word");
     descr[1].lexid  = 98;
     descr[1].alias  = pstrdup("b");
-    descr[1].descr  = pstrdup("English word");
+    descr[1].descr  = pstrdup("Non-Thai word");
     descr[2].lexid  = 99;
     descr[2].alias  = pstrdup("c");
     descr[2].descr  = pstrdup("Space");

@@ -1,3 +1,5 @@
 thai_parser/tests/test_tp
 thai_parser/src/*.o
 thai_parser/*.so
+thai_parser/results/
+thai_parser/regression.*
