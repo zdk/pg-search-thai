@@ -18,7 +18,7 @@
  *
  * Build (from the repository root):
  *   gcc -o tests/test_non_thai_word_bounds tests/test_non_thai_word_bounds.c \
- *       thai_parser/src/tokenizer.c thai_parser/src/converter.c -lthai
+ *       thai_parser/src/tokenizer.c -lthai
  */
 
 #include <stdio.h>

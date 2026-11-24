@@ -86,7 +86,7 @@ SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้ง Thai shrimp s
     99 |
     98 | shrimp
 (...)
--- tokid 97 = Thai word (a), 98 = English word or number (b), 99 = space (c)
+-- tokid 97 = Thai word (a), 98 = non-Thai word or number (b), 99 = space (c)
 ```
 
 These token types are this parser's own. The standard parser's names such as

@@ -100,7 +100,7 @@ echo ""
 echo "==> Running get_non_thai_word bounds test (English word at the end of the text)..."
 docker exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
     gcc -o tests/test_non_thai_word_bounds tests/test_non_thai_word_bounds.c \
-        thai_parser/src/tokenizer.c thai_parser/src/converter.c -lthai 2>&1
+        thai_parser/src/tokenizer.c -lthai 2>&1
 BOUNDS_OUTPUT=$(docker exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
     ./tests/test_non_thai_word_bounds 2>&1) || true
 echo "$BOUNDS_OUTPUT"

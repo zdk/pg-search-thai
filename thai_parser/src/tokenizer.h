@@ -15,9 +15,9 @@
 #define TOKENIZER_H
 
 /**
-  * break the input utf-8 text into thai words and remember its postion.
+  * break a run of Thai chars (utf-8) into thai words and remember its postion.
   *
-  * @param text the text that is needed to be parsed
+  * @param text the run to parse; it must hold only Thai letters and marks
   * @param pos the position of array in order to store the word postion
   * @param text_len a length of an input text
   * @return a length of the word break position
@@ -41,7 +41,7 @@ int get_thai_word(parser_ctx_t* ctx, char** token, int *token_len);
   * @param ctx the context for division. it includes the input information
   * @param token the segement starting point
   * @param token_len the length of word
-  * @return 'b' got a English word; 'c' got a space;
+  * @return 'b' got a non Thai word; 'c' got blanks;
   *         0 if not found and reach the end of buffer
   */
 int get_non_thai_word(parser_ctx_t* ctx, char** token, int *token_len);
