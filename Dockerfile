@@ -1,9 +1,11 @@
-FROM postgres:18
+ARG PG_VERSION=18
+FROM postgres:${PG_VERSION}
 
+# PG_MAJOR is set by the postgres image
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libthai-dev \
-    postgresql-server-dev-18 \
+    postgresql-server-dev-$PG_MAJOR \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /usr/src/pg-search-thai

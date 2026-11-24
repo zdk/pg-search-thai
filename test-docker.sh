@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Usage: [DOCKER=container] [PG_VERSION=17] ./test-docker.sh
+DOCKER="${DOCKER:-docker}"
+PG_VERSION="${PG_VERSION:-18}"
 CONTAINER_NAME="pg-search-thai-test"
 IMAGE_NAME="pg-search-thai-test"
 
 cleanup() {
     echo "==> Cleaning up..."
-    docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+    "$DOCKER" rm -f "$CONTAINER_NAME" 2>/dev/null || true
 }
 trap cleanup EXIT
 
-echo "==> Building Docker image..."
-docker build -t "$IMAGE_NAME" .
+echo "==> Building Docker image for PostgreSQL $PG_VERSION..."
+"$DOCKER" build --build-arg PG_VERSION="$PG_VERSION" -t "$IMAGE_NAME" .
 
 echo "==> Starting PostgreSQL container..."
-docker run -d \
+"$DOCKER" run -d \
     --name "$CONTAINER_NAME" \
     -e POSTGRES_DB=testdb \
     -e POSTGRES_USER=testuser \
@@ -23,12 +26,12 @@ docker run -d \
 
 echo "==> Waiting for PostgreSQL to be ready..."
 for i in $(seq 1 30); do
-    if docker exec "$CONTAINER_NAME" pg_isready -U testuser -d testdb >/dev/null 2>&1; then
+    if "$DOCKER" exec "$CONTAINER_NAME" pg_isready -U testuser -d testdb >/dev/null 2>&1; then
         break
     fi
     if [ "$i" -eq 30 ]; then
         echo "ERROR: PostgreSQL did not become ready in time."
-        docker logs "$CONTAINER_NAME"
+        "$DOCKER" logs "$CONTAINER_NAME"
         exit 1
     fi
     sleep 1
@@ -36,7 +39,7 @@ done
 sleep 3
 
 echo "==> Running C unit tests..."
-C_TEST_OUTPUT=$(docker exec -w /usr/src/pg-search-thai/thai_parser "$CONTAINER_NAME" make test 2>&1)
+C_TEST_OUTPUT=$("$DOCKER" exec -w /usr/src/pg-search-thai/thai_parser "$CONTAINER_NAME" make test 2>&1)
 echo "$C_TEST_OUTPUT"
 if echo "$C_TEST_OUTPUT" | grep -q "Failed"; then
     echo "C unit tests FAILED!"
@@ -44,8 +47,16 @@ if echo "$C_TEST_OUTPUT" | grep -q "Failed"; then
 fi
 
 echo ""
+echo "==> Running pg_regress suite..."
+if ! "$DOCKER" exec -w /usr/src/pg-search-thai/thai_parser "$CONTAINER_NAME" \
+    make installcheck PGUSER=testuser; then
+    "$DOCKER" exec "$CONTAINER_NAME" cat /usr/src/pg-search-thai/thai_parser/regression.diffs
+    exit 1
+fi
+
+echo ""
 echo "==> Running SQL integration tests..."
-docker exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
+"$DOCKER" exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
 SELECT * FROM ts_parse('thai_parser', 'ก็แดดมันร้อน คนไม่ใช่หุ่นยนต์ ที่จะทนตากแดดทั้งวัน');
 
 SELECT to_tsvector('thaicfg', 'ก็แดดมันร้อน คนไม่ใช่หุ่นยนต์ ที่จะทนตากแดดทั้งวัน');
@@ -57,7 +68,7 @@ EOSQL
 
 echo ""
 echo "==> Running README examples..."
-docker exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
+"$DOCKER" exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
 -- Example 1: ts_parse
 SELECT * FROM ts_parse('thai_parser', 'ต้มยำกุ้งน้ำข้น ( Thai sour and spicy shrimp soup ) และไข่เจียวร้อนๆ');
 
@@ -86,9 +97,9 @@ EOSQL
 
 echo ""
 echo "==> Running buffer overread test..."
-docker exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
+"$DOCKER" exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
     gcc -o tests/test_buffer_overread tests/test_buffer_overread.c -g 2>&1
-OVERREAD_OUTPUT=$(docker exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
+OVERREAD_OUTPUT=$("$DOCKER" exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
     ./tests/test_buffer_overread 2>&1)
 echo "$OVERREAD_OUTPUT"
 if echo "$OVERREAD_OUTPUT" | grep -q "FAIL"; then
@@ -98,10 +109,10 @@ fi
 
 echo ""
 echo "==> Running get_non_thai_word bounds test (English word at the end of the text)..."
-docker exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
+"$DOCKER" exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
     gcc -o tests/test_non_thai_word_bounds tests/test_non_thai_word_bounds.c \
         thai_parser/src/tokenizer.c -lthai 2>&1
-BOUNDS_OUTPUT=$(docker exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
+BOUNDS_OUTPUT=$("$DOCKER" exec -w /usr/src/pg-search-thai "$CONTAINER_NAME" \
     ./tests/test_non_thai_word_bounds 2>&1) || true
 echo "$BOUNDS_OUTPUT"
 if echo "$BOUNDS_OUTPUT" | grep -q "FAIL"; then
@@ -125,7 +136,7 @@ echo "==> Checking the same over-read end to end, inside PostgreSQL..."
 #
 # `docker exec -i` matters: without -i the heredoc never reaches psql and the
 # block silently runs nothing.
-docker exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
+"$DOCKER" exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
 DO $$
 DECLARE bad int; example text;
 BEGIN
@@ -154,7 +165,7 @@ echo "==> Checking the token type list (ts_debug, unknown token type)..."
 # MAPPING FOR an unknown type (e.g. asciiword, which the standard parser has)
 # crashed the server with a segfault. If that regresses, psql loses the
 # connection and this step fails.
-docker exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
+"$DOCKER" exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
 DO $$
 DECLARE n int;
 BEGIN
@@ -181,7 +192,7 @@ echo "==> Running the README hunspell example..."
 # Same statements as README "Advanced: hunspell dictionary". It used to fail:
 # the files were installed as th_TH.* (PostgreSQL only opens lowercase names),
 # and it did ADD MAPPING FOR a on thaicfg, which already maps a.
-docker exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
+"$DOCKER" exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
 CREATE TEXT SEARCH DICTIONARY thai_hunspell (
     TEMPLATE  = ispell,
     DictFile  = th_th,
@@ -207,7 +218,7 @@ EOSQL
 
 echo ""
 echo "==> Checking English indexing (1.1.0): fresh install, upgrade, dump/restore..."
-docker exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
+"$DOCKER" exec -i "$CONTAINER_NAME" psql -U testuser -d testdb -v ON_ERROR_STOP=1 <<'EOSQL'
 DO $$
 BEGIN
   IF (SELECT extversion FROM pg_extension WHERE extname = 'thai_parser') <> '1.1.0' THEN
@@ -236,7 +247,7 @@ EOSQL
 for db in upgrade_plain upgrade_manual; do
     extra=""
     [ "$db" = upgrade_manual ] && extra="ALTER TEXT SEARCH CONFIGURATION thaicfg ADD MAPPING FOR b WITH simple;"
-    docker exec -i "$CONTAINER_NAME" psql -U testuser -d "$db" -v ON_ERROR_STOP=1 <<EOSQL
+    "$DOCKER" exec -i "$CONTAINER_NAME" psql -U testuser -d "$db" -v ON_ERROR_STOP=1 <<EOSQL
 CREATE EXTENSION thai_parser VERSION '1.0.0';
 $extra
 ALTER EXTENSION thai_parser UPDATE TO '1.1.0';
@@ -251,13 +262,13 @@ done
 
 # Dump and restore: pg_dump does not dump changes to extension members, so the
 # English mapping survives only because the extension script creates it.
-docker exec "$CONTAINER_NAME" sh -c '
+"$DOCKER" exec "$CONTAINER_NAME" sh -c '
   set -e
   pg_dump -U testuser -Fc testdb -f /tmp/roundtrip.dump
   createdb -U testuser restored
   pg_restore -U testuser -d restored /tmp/roundtrip.dump
 '
-docker exec -i "$CONTAINER_NAME" psql -U testuser -d restored -v ON_ERROR_STOP=1 <<'EOSQL'
+"$DOCKER" exec -i "$CONTAINER_NAME" psql -U testuser -d restored -v ON_ERROR_STOP=1 <<'EOSQL'
 DO $$
 BEGIN
   IF NOT (to_tsvector('thaicfg', 'กล้อง CCTV') @@ to_tsquery('thaicfg', 'cctv')) THEN
@@ -269,7 +280,7 @@ EOSQL
 
 echo ""
 echo "==> Running UTF-8 0xB8 error reproduction SQL..."
-REPRO_OUTPUT=$(docker exec "$CONTAINER_NAME" \
+REPRO_OUTPUT=$("$DOCKER" exec "$CONTAINER_NAME" \
     psql -U testuser -d testdb -f /usr/src/pg-search-thai/tests/reproduce_utf8_0xb8_error.sql 2>&1) || true
 echo "$REPRO_OUTPUT"
 

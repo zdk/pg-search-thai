@@ -7,6 +7,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pg: [14, 15, 16, 17, 18, 19]
+    env:
+      PG_VERSION: ${{ matrix.pg }}
     steps:
       - uses: actions/checkout@v4
       - run: make test-docker
